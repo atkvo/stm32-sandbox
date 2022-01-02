@@ -8,8 +8,10 @@ project(
 
 set(EXECUTABLE ${PROJECT_NAME}.out)
 
-set(CUBE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/STM32CubeF4)
-set(CMSIS_STM32F4XX_TEMPLATE ${CUBE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates)
+set(MCU STM32F411XE)
+
+set(CUBE_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/STM32CubeF4)
+set(CMSIS_STM32F4XX_TEMPLATE ${CUBE_ROOT_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates)
 
 set(STM32CUBEMX_GENERATED_FILES
     ${CMSIS_STM32F4XX_TEMPLATE}/gcc/startup_stm32f411xe.s
@@ -28,16 +30,22 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
         -DSTM32F411xE
 )
 
-target_include_directories(${EXECUTABLE} PRIVATE
-        ${CUBE_DIR}/Inc
-        ${CUBE_DIR}/Drivers/STM32F4xx_HAL_Driver/Inc
-        ${CUBE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include
-        ${CUBE_DIR}/Drivers/CMSIS/Include
+set(CUBE_INCLUDES
+        ${CUBE_ROOT_DIR}/Inc
+        ${CUBE_ROOT_DIR}/Drivers/STM32F4xx_HAL_Driver/Inc
+        ${CUBE_ROOT_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include
+        ${CUBE_ROOT_DIR}/Drivers/CMSIS/Include
+)
 
+target_include_directories(${EXECUTABLE} PUBLIC
+        ${CUBE_INCLUDES}
         ${CMAKE_SOURCE_DIR}
         )
 
-target_compile_options(${EXECUTABLE} PRIVATE
+target_link_libraries(${EXECUTABLE} PUBLIC hal)
+add_subdirectory(lib/hal)
+
+target_compile_options(${EXECUTABLE} PUBLIC
         -mcpu=cortex-m4
         -mthumb
         -mfpu=fpv4-sp-d16

@@ -1,12 +1,12 @@
 #include <cstdint>
 #include "system_stm32f4xx.h"
 #include "stm32f4xx.h"
-#include "stm32f411xe.h"
-#include "lib/hal/gpio/gpio.hpp"
-#include "lib/hal/gpio/stm32f411xe_gpio.hpp"
+#include "lib/hal/include/gpio.hpp"
 
-// This can be considered your "application" interface here
-void set_led(GpioInterface &gpio, bool on)
+// This can be considered as an "application" using the GPIO
+// interface here. Eventually we should be able to mock the
+// Gpio object out 
+void set_led(Gpio &gpio, bool on)
 {
     // if we want to turn the LED on, write
     // a 0 to the output register since it's 
@@ -18,7 +18,7 @@ int main()
 {
     SystemInit();
 
-    Gpio<GpioPort::C> portC;
+    Gpio portC(GpioPort::C);
 
     portC.SetMode(13, GpioMode::Output);
     portC.SetOutputType(13, GpioOutputType::OpenDrain);
