@@ -82,14 +82,26 @@ public:
      * @param pinIndex 
      * @param state 
      */
-    void Write(uint8_t pinIndex, bool state);
+    void WriteOutput(uint8_t pinIndex, bool state);
 
     /**
      * @brief Writes to the entire output register
      * 
      * @param register 
      */
-    void WriteRegister(uint32_t register);
+    void WriteOutputRegister(uint32_t register);
+
+    /**
+     * @brief Read an input state of the specified pin
+     * 
+     * @param pinIndex 
+     */
+    bool ReadInput(uint8_t pinIndex);
+
+    /**
+     * @brief Reads the entire input register
+     */
+    uint32_t ReadInputRegister();
 
     /**
      * @brief Destroy the Gpio object

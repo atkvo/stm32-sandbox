@@ -18,7 +18,7 @@ Gpio::Gpio(GpioPort port) : mPort(port)
     mGpioRegister = reinterpret_cast<GPIO_TypeDef*>(GPIOA_BASE + (GPIO_PERIPHERAL_SIZE_IN_BYTES * static_cast<uint8_t>(port)));
 
     // Enable the clock to the GPIO port
-    RCC->AHB1ENR |= (1 << static_cast<uint8_t>(port));
+    RCC->AHB1ENR |= (1 << static_cast<uint8_t>(mPort));
 }
 
 Gpio::~Gpio()
@@ -55,9 +55,15 @@ void Gpio::SetOutputType(uint8_t pinIndex, GpioOutputType mode)
     gpio->OTYPER = (gpio->OTYPER & CLEAR_MASK) | (mode << pinIndex);
 }
 
-void Gpio::Write(uint8_t pinIndex, bool state) 
+void Gpio::WriteOutput(uint8_t pinIndex, bool state) 
 {
     const uint8_t CLEAR_MASK = 1 << pinIndex;
     volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
     gpio->ODR = (gpio->ODR & CLEAR_MASK) | ((state ? 1 : 0) << pinIndex);
+}
+
+bool Gpio::ReadInput(uint8_t pinIndex)
+{
+    volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
+    return (gpio->IDR & (1 << pinIndex)) ? true : false;
 }
