@@ -27,7 +27,7 @@ int main()
 {
     SystemInit();
 
-    AppMode const MODE = BlinkyMode;
+    AppMode MODE = BlinkyMode;
 
     Gpio portC(GpioPort::C);
     portC.SetMode(LED_PIN, GpioMode::Output);
@@ -45,6 +45,11 @@ int main()
 
     while(1)
     {
+        if (!portA.ReadInput(USER_SWITCH_PIN))
+        {
+            MODE = SwitchMode;
+        }
+
         if (MODE == SwitchMode)
         {
             // PA.0 is has an active low switch on it
