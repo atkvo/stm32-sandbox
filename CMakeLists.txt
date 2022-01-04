@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.1)
 
 project(
-    stm32-test
+    stm32-sandbox
     VERSION 1.0
     LANGUAGES C CXX ASM
 )
 
-set(EXECUTABLE ${PROJECT_NAME}.out)
+set(EXECUTABLE ${PROJECT_NAME}.elf)
 
 set(MCU STM32F411XE)
 
@@ -56,6 +56,7 @@ target_compile_options(${EXECUTABLE} PUBLIC
         -fno-rtti
 
         -Wall
+        -g
 
         $<$<CONFIG:Debug>:-Og>
         )
@@ -74,6 +75,7 @@ target_link_options(${EXECUTABLE} PRIVATE
         -lnosys
         -Wl,-Map=${PROJECT_NAME}.map,--cref
         -Wl,--gc-sections
+        -g
 )
 
 # Print executable size
