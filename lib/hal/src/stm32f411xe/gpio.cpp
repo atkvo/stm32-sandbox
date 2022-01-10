@@ -50,16 +50,16 @@ void Gpio::SetMode(uint8_t pinIndex, GpioMode mode)
 
 void Gpio::SetOutputType(uint8_t pinIndex, GpioOutputType mode) 
 {
-    const uint8_t CLEAR_MASK = 1 << pinIndex;
+    const uint8_t MASK = ~(1 << pinIndex);
     volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
-    gpio->OTYPER = (gpio->OTYPER & CLEAR_MASK) | (mode << pinIndex);
+    gpio->OTYPER = (gpio->OTYPER & MASK) | (mode << pinIndex);
 }
 
 void Gpio::WriteOutput(uint8_t pinIndex, bool state) 
 {
-    const uint8_t CLEAR_MASK = 1 << pinIndex;
+    const uint8_t MASK = ~(1 << pinIndex);
     volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
-    gpio->ODR = (gpio->ODR & CLEAR_MASK) | ((state ? 1 : 0) << pinIndex);
+    gpio->ODR = (gpio->ODR & MASK) | ((state ? 1 : 0) << pinIndex);
 }
 
 bool Gpio::ReadInput(uint8_t pinIndex)
