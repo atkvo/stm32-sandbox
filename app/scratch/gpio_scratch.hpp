@@ -3,10 +3,10 @@
 
 namespace gpio_scratch
 {
-    enum AppMode
+    enum AppMode : bool
     {
-        SwitchMode,
-        BlinkyMode
+        SwitchMode = false,
+        BlinkyMode = true
     };
 
     uint8_t const LED_PIN = 13;        // PC.13
@@ -40,19 +40,23 @@ namespace gpio_scratch
 
         bool const ON = true;
         bool const OFF = false;
+        bool switchPressed = false;
 
         while(1)
         {
             if (!portA.ReadInput(USER_SWITCH_PIN))
             {
-                MODE = SwitchMode;
+                MODE = static_cast<AppMode>(!MODE);
+                switchPressed = true;
             }
 
             if (MODE == SwitchMode)
             {
-                // PA.0 is has an active low switch on it
-                // so turn on the LED when it reads 0
-                SetLed(portC, portA.ReadInput(USER_SWITCH_PIN) ? ON : OFF);
+                // only go through here when the button has been pressed
+                if (switchPressed)
+                {
+                    SetLed(portC, portA.ReadInput(USER_SWITCH_PIN) ? ON : OFF);
+                }
             }
             else
             {
@@ -61,6 +65,8 @@ namespace gpio_scratch
                 SetLed(portC, OFF);
                 for (volatile int i = 0; i < 500000; i++); // arbitrary delay
             }
+
+            switchPressed = false;
         }
     }
 }

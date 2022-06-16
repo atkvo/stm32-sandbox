@@ -1,18 +1,22 @@
 #pragma once
 
 #include "util.hpp"
+#include "gpio.hpp"
 
 #include <cstdint>
 
-
+/**
+ * @brief Class to manage the ADC peripheral
+ *
+ * todo:
+ *  - Add DMA support
+ *  - Add interrupt support
+ *  - Add multiple channel read support
+ *
+ */
 class Adc
 {
 public:
-    enum Event
-    {
-        ADC_EVENT_READ_DONE,
-        ADC_TOTAL_EVENTS,
-    };
 
     enum Resolution
     {
@@ -23,27 +27,58 @@ public:
     };
 
     /**
-     * @brief
+     * @brief Construct a new Adc object
      *
-     * Note: This listener will be notified from the IRQ context
-     * It's not a good idea to do too much in there. Set a flag instead.
-     *
-     * @param e
-     * @param lis
      */
-    void RegisterListener(Event e, Listener &lis);
+    Adc();
 
+    /**
+     * @brief Destroy the Adc object
+     *
+     */
+    ~Adc();
+
+    /**
+     * @brief Configures the GPIO pin for analog input
+     *
+     * @param gpioPort
+     * @param pinIndex
+     */
+    void ConfigurePin(Gpio &gpioPort, uint8_t pinIndex);
+
+    /**
+     * @brief Reads the ADC data register
+     *
+     * @return uint32_t
+     */
     uint32_t Read();
 
-    void ConfigureDmaAddress(uint32_t *data);
+    /**
+     * @brief Check if an ADC conversion is done
+     *
+     * @return true
+     * @return false
+     */
+    bool IsConversionDone();
 
+    /**
+     * @brief Starts the conversion
+     *
+     */
+
+    void BeginConversion();
+
+    /**
+     * @brief Set the ADC resolution
+     *
+     * @param r
+     * @return true if the resolution is supported
+     * @return false  if the resolution is not supported
+     */
     bool SetResolution(Resolution r);
-
-    void SetEnableState(bool state);
 
     static const uint32_t MAX_RESOLUTION;
 
 private:
-    uint32_t *m_DmaAddress = nullptr;
     Resolution m_ConfiguredResolution;
 };
