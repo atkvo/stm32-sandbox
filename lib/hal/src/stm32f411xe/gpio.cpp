@@ -1,8 +1,8 @@
 #include "gpio.hpp"
 #include "stm32f411xe.h"
 
-static const uint64_t GPIO_PERIPHERAL_SIZE_IN_BYTES = 0x400;
-static uint8_t const MAX_PINS_PER_GPIO_REG = 16;
+static uint64_t const GPIO_PERIPHERAL_SIZE_IN_BYTES = 0x400;
+static uint8_t  const MAX_PINS_PER_GPIO_REG = 16;
 
 static_assert((AHB1PERIPH_BASE + (GPIO_PERIPHERAL_SIZE_IN_BYTES * (int)GpioPort::A)) == GPIOA_BASE, "Gpio offset assumptions will not work");
 static_assert((AHB1PERIPH_BASE + (GPIO_PERIPHERAL_SIZE_IN_BYTES * (int)GpioPort::B)) == GPIOB_BASE, "Gpio offset assumptions will not work");
@@ -27,7 +27,7 @@ Gpio::~Gpio()
     RCC->AHB1ENR &= ~(1 << static_cast<uint8_t>(mPort));
 }
 
-void Gpio::SetMode(uint8_t pinIndex, GpioMode mode) 
+void Gpio::SetMode(uint8_t pinIndex, GpioMode mode)
 {
     if (pinIndex > MAX_PINS_PER_GPIO_REG)
     {
@@ -48,16 +48,30 @@ void Gpio::SetMode(uint8_t pinIndex, GpioMode mode)
     gpio->MODER = (gpio->MODER & CLEAR_MASK) | (modeBits << MODE_INDEX);
 }
 
-void Gpio::SetOutputType(uint8_t pinIndex, GpioOutputType mode) 
+void Gpio::SetOutputType(uint8_t pinIndex, GpioOutputType mode)
 {
-    const uint8_t MASK = ~(1 << pinIndex);
+    uint8_t const MASK = ~(1 << pinIndex);
     volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
     gpio->OTYPER = (gpio->OTYPER & MASK) | (mode << pinIndex);
 }
 
-void Gpio::WriteOutput(uint8_t pinIndex, bool state) 
+void Gpio::SetPinSpeed(uint8_t pinIndex, GpioSpeed speed)
 {
-    const uint8_t MASK = ~(1 << pinIndex);
+    // OSPEEDR is organized in 2-bit fields per pin index
+    uint8_t const OSPEEDR_BITS_PER_PIN = 2;
+    uint8_t const OSPEEDR_MASK         = 0x3;
+
+    // Mask off everything but the desired bits
+    uint8_t const OSPEEDR_CLEAR_MASK = ~(OSPEEDR_MASK << (pinIndex * OSPEEDR_BITS_PER_PIN));
+
+    volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
+
+    gpio->OSPEEDR = (gpio->OSPEEDR & OSPEEDR_CLEAR_MASK) | (static_cast<uint8_t>(speed) << pinIndex);
+}
+
+void Gpio::WriteOutput(uint8_t pinIndex, bool state)
+{
+    uint8_t const MASK = ~(1 << pinIndex);
     volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
     gpio->ODR = (gpio->ODR & MASK) | ((state ? 1 : 0) << pinIndex);
 }

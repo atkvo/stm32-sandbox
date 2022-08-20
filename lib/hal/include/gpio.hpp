@@ -45,6 +45,14 @@ enum class GpioPort : uint8_t
     H = 7
 };
 
+enum class GpioSpeed : uint8_t
+{
+    Low    = 0x00,
+    Medium = 0x01,
+    Fast   = 0x10,
+    High   = 0x11
+};
+
 /**
  * @brief Gpio class that abstracts
  * configuration and usage of the GPIO
@@ -75,6 +83,14 @@ public:
      * @param mode
      */
     void SetOutputType(uint8_t pinIndex, GpioOutputType mode);
+
+    /**
+     * @brief Set the IO pin speed for the specified pin index
+     *
+     * @param pinIndex
+     * @param speed
+     */
+    void SetPinSpeed(uint8_t pinIndex, GpioSpeed speed);
 
     /**
      * @brief Writes a value to the specified pin index

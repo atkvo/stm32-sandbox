@@ -3,6 +3,7 @@ if (MCU STREQUAL STM32F411XE)
     add_library(${LIBRARY_NAME}
         src/stm32f411xe/gpio.cpp
         src/stm32f411xe/adc.cpp
+        src/stm32f411xe/i2c.cpp
     )
 else()
     message(FATAL_ERROR "Please define an MCU")
