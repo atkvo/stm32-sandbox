@@ -29,7 +29,7 @@ Gpio::~Gpio()
 
 void Gpio::SetMode(uint8_t pinIndex, GpioMode mode) 
 {
-    if (pinIndex > MAX_PINS_PER_GPIO_REG)
+    if (pinIndex >= MAX_PINS_PER_GPIO_REG)
     {
         return;
     }
