@@ -26,6 +26,27 @@ enum GpioOutputType
     OpenDrain = 0x1
 };
 
+/** 
+ * @brief Gpio pull up pull down modes
+*/
+enum class GpioPuPdMode : uint8_t
+{
+    None     = 0x0,
+    Pullup   = 0x1,
+    Pulldown = 0x2,
+};
+
+/** 
+ * @brief Gpio speed modes
+*/
+enum class GpioSpeed : uint8_t
+{
+    Low    = 0x0,
+    Fast   = 0x1,
+    Medium = 0x2,
+    High   = 0x2,
+};
+
 /**
  * @brief GpioPort
  *
@@ -76,6 +97,7 @@ public:
      */
     void SetOutputType(uint8_t pinIndex, GpioOutputType mode);
 
+    void SetPullUpPullDown(uint8_t pinIndex, GpioPuPdMode mode);
     /**
      * @brief Writes a value to the specified pin index
      *
@@ -102,6 +124,16 @@ public:
      * @brief Reads the entire input register
      */
     uint32_t ReadInputRegister();
+
+    /**
+     * @brief Configures the pin alternate function mode
+     */
+    void SetAfMode(uint8_t pinIndex, uint8_t afMode);
+
+    /** 
+     * @brief Set the GPIO pin speed
+     */
+    void SetSpeed(uint8_t pinIndex, GpioSpeed speed);
 
     /**
      * @brief Destroy the Gpio object
