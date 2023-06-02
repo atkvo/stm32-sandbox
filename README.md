@@ -114,7 +114,7 @@ Flashing instructions here: https://openocd.org/doc/html/Flash-Programming.html
 
 ```sh
 # start the open ocd instance from the shell with the proper debugger/board configuration
-openocd -f /usr/local/Cellar/open-ocd/0.11.0/share/openocd/scripts/interface/stlink-v2-1.cfg -f /usr/local/Cellar/open-ocd/0.11.0/share/openocd/scripts/target/stm32f4x.cfg
+openocd -f /opt/homebrew/Cellar/open-ocd/0.12.0/share/openocd/scripts/interface/stlink-v2-1.cfg -f /opt/homebrew/Cellar/open-ocd/0.12.0/share/openocd/scripts/target/stm32f4x.cfg
 
 # in a separate shell instance, telnet into the openocd server
 telnet localhost:4444
@@ -128,7 +128,7 @@ program test.elf verify reset
 #### One Liner
 
 ```sh
-openocd -f /usr/local/Cellar/open-ocd/0.11.0/share/openocd/scripts/interface/stlink-v2-1.cfg -f /usr/local/Cellar/open-ocd/0.11.0/share/openocd/scripts/target/stm32f4x.cfg -c "program stm32-test.elf verify reset"
+openocd -f /opt/homebrew/Cellar/open-ocd/0.12.0/share/openocd/scripts/interface/stlink-v2-1.cfg -f /opt/homebrew/Cellar/open-ocd/0.12.0/share/openocd/scripts/target/stm32f4x.cfg -c "program stm32-sandbox.elf verify reset"
 ```
 
 ### Debug GDB
