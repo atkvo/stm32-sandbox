@@ -26,7 +26,7 @@ enum GpioOutputType
     OpenDrain = 0x1
 };
 
-/** 
+/**
  * @brief Gpio pull up pull down modes
 */
 enum class GpioPuPdMode : uint8_t
@@ -36,15 +36,15 @@ enum class GpioPuPdMode : uint8_t
     Pulldown = 0x2,
 };
 
-/** 
+/**
  * @brief Gpio speed modes
 */
 enum class GpioSpeed : uint8_t
 {
     Low    = 0x0,
-    Fast   = 0x1,
-    Medium = 0x2,
-    High   = 0x2,
+    Medium = 0x1,
+    Fast   = 0x2,
+    High   = 0x3,
 };
 
 /**
@@ -130,7 +130,7 @@ public:
      */
     void SetAfMode(uint8_t pinIndex, uint8_t afMode);
 
-    /** 
+    /**
      * @brief Set the GPIO pin speed
      */
     void SetSpeed(uint8_t pinIndex, GpioSpeed speed);
