@@ -76,6 +76,7 @@ add_compile_options(
   -fno-rtti
   -Wall
   -g
+  -std=c++11
 
   $<$<CONFIG:Debug>:-Og>
 )

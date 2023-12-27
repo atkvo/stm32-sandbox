@@ -21,7 +21,7 @@ namespace usart_scratch
         HELLO
     };
 
-    void Transmit(Usart &u, uint8_t *c, uint32_t len)
+    void Transmit(Usart &u, const uint8_t *c, uint32_t len)
     {
         for (uint8_t i = 0; i < len; i++)
         {
@@ -82,7 +82,7 @@ namespace usart_scratch
 
     Operations Process(Usart &u, char *c, uint8_t len)
     {
-        static char *cmds[] =
+        static const char *cmds[] =
         {
             "LED_OFF",
             "LED_ON",
@@ -107,7 +107,7 @@ namespace usart_scratch
         {
             for (uint8_t i = 0; i < sizeof(cmds) / sizeof(char*); i++)
             {
-                Transmit(u, reinterpret_cast<uint8_t*>(cmds[i]));
+                Transmit(u, reinterpret_cast<const uint8_t*>(cmds[i]));
                 u.Tx('\r');
                 u.Tx('\n');
             }

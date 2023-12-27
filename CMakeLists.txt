@@ -10,10 +10,13 @@ set(EXECUTABLE ${PROJECT_NAME}.elf)
 
 set(MCU STM32F411XE)
 
-set(SOURCES 
+set(SOURCES
     ${SOURCES}
     app/main.cpp
 )
+
+# set(CXXFLAGS  " -Wall -std=c++17")
+# set(CMAKE_CXX_FLAGS "${CXXFLAGS}")
 
 add_executable(${EXECUTABLE} ${SOURCES})
 
@@ -25,7 +28,7 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
 target_include_directories(${EXECUTABLE} PUBLIC
         ${CUBE_INCLUDES}
         ${CMAKE_SOURCE_DIR}
-        )
+)
 
 target_link_libraries(${EXECUTABLE} PUBLIC hal)
 add_subdirectory(lib/hal)

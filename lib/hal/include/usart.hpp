@@ -1,8 +1,6 @@
 #pragma once
 
-#include "util.hpp"
-
-#include <cstdint>
+#include <stdint.h>
 
 enum class UsartNum
 {

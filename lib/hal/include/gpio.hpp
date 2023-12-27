@@ -4,7 +4,7 @@
  * @brief Defines the GPIO interface
  */
 
-#include <cstdint>
+#include <stdint.h>
 
 /**
  * @brief Gpio mode
