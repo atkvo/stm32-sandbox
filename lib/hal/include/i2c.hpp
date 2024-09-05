@@ -62,7 +62,7 @@ public:
         m_i2c->CR1 |= (I2C_CR1_SWRST);
         m_i2c->CR1 &= ~(I2C_CR1_SWRST);
 
-        m_i2c->CR1 &= ~(I2C_CR1_PE);    // Disable peripheral before configuring clock
+        m_i2c->CR1 &= ~(I2C_CR1_PE); // Disable peripheral before configuring clock
 
         // configure clock
         m_i2c->CR2 &= ~(I2C_CR2_FREQ_Msk);
@@ -87,7 +87,7 @@ public:
 
     template <typename T>
     requires IsGpioPort<T>
-    void ConfigurePin(T &gpio_port, uint8_t pinIndex)
+    void configure_pin(T &gpio_port, uint8_t pinIndex)
     {
         gpio_port.set_mode(pinIndex, GpioMode::Analog);
         ADC1->SQR3 |= ADC_SQR3_SQ1_0;
@@ -105,25 +105,41 @@ public:
 
     uint8_t read_byte(uint8_t address);
 
+    inline void tx_start(uint8_t address)
+    {
+        _i2c_start();
+        _i2c_addr(address);
+    }
+
+    inline void tx_data(uint8_t data)
+    {
+        _i2c_write(data);
+    }
+
+    inline void tx_end()
+    {
+        _i2c_stop();
+    }
+
 private:
     volatile I2C_TypeDef *m_i2c;
 
     inline
-    void __i2c_start()
+    void _i2c_start()
     {
         m_i2c->CR1 |= I2C_CR1_START;
         while (!(m_i2c->SR1 & I2C_SR1_SB));
     }
 
     inline
-    void __i2c_stop()
+    void _i2c_stop()
     {
         m_i2c->CR1 |= I2C_CR1_STOP;
         while (!(m_i2c->SR2 & I2C_SR2_BUSY));
     }
 
     inline
-    void __i2c_addr(uint8_t address)
+    void _i2c_addr(uint8_t address)
     {
         m_i2c->DR = address << 1;
         while (!(m_i2c->SR1 & I2C_SR1_ADDR));
@@ -131,7 +147,7 @@ private:
     }
 
     inline
-    void __i2c_write(uint8_t data)
+    void _i2c_write(uint8_t data)
     {
         while (!(m_i2c->SR1 & (I2C_SR1_TXE)));
         m_i2c->DR = data;
@@ -144,5 +160,4 @@ private:
         const uint32_t I2C_OFFSET = OFFSET_LEN * static_cast<uint8_t>(id);
         return reinterpret_cast<volatile I2C_TypeDef*>(I2C1_BASE + I2C_OFFSET);
     }
-
 };

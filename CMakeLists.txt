@@ -32,7 +32,9 @@ target_include_directories(${EXECUTABLE} PUBLIC
 )
 
 target_link_libraries(${EXECUTABLE} PUBLIC hal)
+target_link_libraries(${EXECUTABLE} PUBLIC drivers)
 add_subdirectory(lib/hal)
+add_subdirectory(lib/drivers)
 
 # Print executable size
 add_custom_command(TARGET ${EXECUTABLE}

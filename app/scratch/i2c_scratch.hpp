@@ -41,11 +41,10 @@ namespace i2c_scratch
         };
 
         const uint8_t OLED_ADDRESS = OLED_MONOCHROME;
-        const uint8_t CMD_BYTES[] = { 0x0, cmd };
+        // const uint8_t CMD_BYTES[] = { 0x0, cmd };
 
         // Both methods work
-        g_i2c->write_stream(OLED_ADDRESS, CMD_BYTES, 2);
-        // g_i2c->WriteReg(OLED_ADDRESS, 0x0, cmd);
+        g_i2c->write_reg(OLED_ADDRESS, 0x0, cmd);
     }
 
     void run() {
@@ -112,7 +111,7 @@ namespace i2c_scratch
         i2c_OLED_send_cmd(0x40); // VCOMH Deselect Level
 
         i2c_OLED_send_cmd(0xA4); // Set all pixels OFF
-        i2c_OLED_send_cmd(0xA6); // Set display not inverted
+        i2c_OLED_send_cmd(0xA7); // Set display not inverted
         i2c_OLED_send_cmd(0xAF); // Set display On
 
         // i2c_OLED_clear_display();
