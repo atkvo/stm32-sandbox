@@ -1,21 +1,44 @@
-#include "stm32f4xx.h"
-#include "system_stm32f4xx.h"
 #include <cstdint>
+#include "system_stm32f4xx.h"
+
+enum class DemoMode
+{
+    ADCApp,
+    GPIOApp,
+    I2CApp,
+    USARTApp
+};
+
+// constexpr DemoMode DEMO = DemoMode::GPIOApp;
+constexpr DemoMode DEMO = DemoMode::GPIOApp;
 
 #include "scratch/adc_scratch.hpp"
 #include "scratch/gpio_scratch.hpp"
 #include "scratch/i2c_scratch.hpp"
 #include "scratch/usart_scratch.hpp"
 
-uint8_t __counter = 0;
 int main() {
-  SystemInit();
-  SystemCoreClockUpdate();
+    SystemInit();
+    SystemCoreClockUpdate();
 
-  // gpio_scratch::run();
-  // adc_scratch::run();
-  // usart_scrath::run();
-  i2c_scratch::run();
+    constexpr auto run_demo = []() -> void
+    {
+        switch (DEMO)
+        {
+            case DemoMode::ADCApp:
+                return adc_scratch::run();
+            case DemoMode::GPIOApp:
+                return gpio_scratch::run();
+            case DemoMode::I2CApp:
+                return i2c_scratch::run();
+            case DemoMode::USARTApp:
+                return usart_scratch::run();
+            default:
+                return gpio_scratch::run();
+        }
+    }; 
 
-  return 0;
+    run_demo();
+
+    return 0;
 }

@@ -7,6 +7,10 @@ if (MCU STREQUAL STM32F411XE)
         board/stm32f411xe/src/gpio.cpp
         board/stm32f411xe/src/usart.cpp
     )
+
+    target_include_directories(hal PUBLIC
+        board/stm32f411xe/inc
+    )
 else()
     message(FATAL_ERROR "Please define an MCU")
 endif()

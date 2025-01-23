@@ -1,8 +1,16 @@
 #include "gpio.hpp"
 #include "stm32f411xe.h"
 
-static const uint64_t GPIO_PERIPHERAL_SIZE_IN_BYTES = 0x400;
-static uint8_t const MAX_PINS_PER_GPIO_REG = 16;
+enum
+{
+    GPIO_PERIPHERAL_SIZE_IN_BYTES = 0x400,
+    MAX_PINS_PER_GPIO_REG = 16,
+};
+
+static volatile GPIO_TypeDef* get_gpio_ptr(GpioPort port)
+{
+    return reinterpret_cast<GPIO_TypeDef*>(GPIOA_BASE + (GPIO_PERIPHERAL_SIZE_IN_BYTES * static_cast<uint8_t>(port)));
+}
 
 static_assert((AHB1PERIPH_BASE + (GPIO_PERIPHERAL_SIZE_IN_BYTES * (int)GpioPort::A)) == GPIOA_BASE, "Gpio offset assumptions will not work");
 static_assert((AHB1PERIPH_BASE + (GPIO_PERIPHERAL_SIZE_IN_BYTES * (int)GpioPort::B)) == GPIOB_BASE, "Gpio offset assumptions will not work");
@@ -11,100 +19,96 @@ static_assert((AHB1PERIPH_BASE + (GPIO_PERIPHERAL_SIZE_IN_BYTES * (int)GpioPort:
 static_assert((AHB1PERIPH_BASE + (GPIO_PERIPHERAL_SIZE_IN_BYTES * (int)GpioPort::E)) == GPIOE_BASE, "Gpio offset assumptions will not work");
 static_assert((AHB1PERIPH_BASE + (GPIO_PERIPHERAL_SIZE_IN_BYTES * (int)GpioPort::H)) == GPIOH_BASE, "Gpio offset assumptions will not work");
 
-static volatile GPIO_TypeDef* getGpio(volatile void* ptr) { return reinterpret_cast<volatile GPIO_TypeDef*>(ptr); }
-
-Gpio::Gpio(GpioPort port) : mPort(port)
+Gpio::Gpio(GpioPort port) : m_gpio(get_gpio_ptr(port)), m_port(port)
 {
-    mGpioRegister = reinterpret_cast<GPIO_TypeDef*>(GPIOA_BASE + (GPIO_PERIPHERAL_SIZE_IN_BYTES * static_cast<uint8_t>(port)));
-
-    // Enable the clock to the GPIO port
-    RCC->AHB1ENR |= (1 << static_cast<uint8_t>(mPort));
+    RCC->AHB1ENR |= (1 << static_cast<uint8_t>(port));
 }
 
-Gpio::~Gpio()
+void Gpio::set_mode(uint8_t pin, GpioMode mode)
 {
-    // Disable the clock to the GPIO port
-    RCC->AHB1ENR &= ~(1 << static_cast<uint8_t>(mPort));
-}
-
-void Gpio::SetMode(uint8_t pinIndex, GpioMode mode) 
-{
-    if (pinIndex >= MAX_PINS_PER_GPIO_REG)
+    if (pin >= MAX_PINS_PER_GPIO_REG)
     {
         return;
     }
 
     // Each MODERxx is 2 bits wide
     uint8_t const BITS_PER_MODE_CONTROL = 2;
-    uint8_t const MODE_INDEX = pinIndex * BITS_PER_MODE_CONTROL;
+    uint8_t const MODE_INDEX = pin * BITS_PER_MODE_CONTROL;
 
-    uint8_t const modeBits = static_cast<uint8_t>(mode);
+    uint8_t const mode_bits = static_cast<uint8_t>(mode);
 
     uint32_t const SET_MASK = (0x3 << MODE_INDEX);
     uint32_t const CLEAR_MASK = ~SET_MASK;
 
     // AND with the save mask to clear the desired bits to set
-    volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
-    gpio->MODER = (gpio->MODER & CLEAR_MASK) | (modeBits << MODE_INDEX);
+    m_gpio->MODER = (m_gpio->MODER & CLEAR_MASK) | (mode_bits << MODE_INDEX);
 }
 
-void Gpio::SetOutputType(uint8_t pinIndex, GpioOutputType mode) 
+void Gpio::set_output_mode(uint8_t pin, GpioOutputMode mode)
 {
-    const uint8_t MASK = ~(1 << pinIndex);
-    volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
-    gpio->OTYPER = (gpio->OTYPER & MASK) | (mode << pinIndex);
+    const uint8_t MASK = ~(1 << pin);
+    m_gpio->OTYPER = (m_gpio->OTYPER & MASK) | (mode << pin);
 }
 
-void Gpio::SetPullUpPullDown(uint8_t pinIndex, const GpioPuPdMode mode)
+void Gpio::set_pupd(uint8_t pin, GpioPuPdMode mode)
 {
     uint8_t const BITS_PER_MODE_CONTROL = 2;
-    uint8_t const MODE_INDEX = pinIndex * BITS_PER_MODE_CONTROL;
+    uint8_t const MODE_INDEX = pin * BITS_PER_MODE_CONTROL;
 
     uint8_t const MODE_BITS = static_cast<uint8_t>(mode);
 
     uint32_t const SET_MASK = (0x3 << MODE_INDEX);
     uint32_t const CLEAR_MASK = ~SET_MASK;
 
-    volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
-    gpio->PUPDR &= CLEAR_MASK;
-    gpio->PUPDR |= (MODE_BITS << MODE_INDEX);
+    m_gpio->PUPDR &= CLEAR_MASK;
+    m_gpio->PUPDR |= (MODE_BITS << MODE_INDEX);
 }
 
-void Gpio::WriteOutput(uint8_t pinIndex, bool state) 
+void Gpio::write_pin(uint8_t pin, bool state)
 {
-    const uint8_t MASK = ~(1 << pinIndex);
-    volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
-    gpio->ODR = (gpio->ODR & MASK) | ((state ? 1 : 0) << pinIndex);
+    const uint8_t MASK = ~(1 << pin);
+    m_gpio->ODR = (m_gpio->ODR & MASK) | ((state ? 1 : 0) << pin);
 }
 
-bool Gpio::ReadInput(uint8_t pinIndex)
+void Gpio::write_port(uint32_t reg)
 {
-    volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
-    return (gpio->IDR & (1 << pinIndex)) ? true : false;
+    m_gpio->ODR = reg;
 }
 
-void Gpio::SetAfMode(uint8_t pinIndex, uint8_t afMode)
+bool Gpio::read_pin(uint8_t pin)
+{
+    return (m_gpio->IDR & (1 << pin)) ? true : false;
+}
+
+uint32_t Gpio::read_port()
+{
+    return m_gpio->IDR;
+}
+
+void Gpio::set_af(uint8_t pin, uint8_t af_mode)
 {
     const uint8_t PINS_PER_AFR = 8;
-    volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
-    volatile uint32_t &AFR_REG = (pinIndex < PINS_PER_AFR) ? gpio->AFR[0] : gpio->AFR[1];
+    volatile uint32_t &AFR_REG = (pin < PINS_PER_AFR) ? m_gpio->AFR[0] : m_gpio->AFR[1];
 
     const uint8_t AFR_MASK     = 0xF; // 4 bits
-    const uint8_t AFR_INDEX    = pinIndex % PINS_PER_AFR;
+    const uint8_t AFR_INDEX    = pin % PINS_PER_AFR;
     const uint8_t AFR_BITS_PER_PIN = 4;
     const uint8_t AFR_POS      = AFR_INDEX * AFR_BITS_PER_PIN;
 
     // clear then set
     AFR_REG &= ~(AFR_MASK << AFR_POS);
-    AFR_REG |= (afMode & AFR_MASK) << (AFR_POS);
+    AFR_REG |= (af_mode & AFR_MASK) << (AFR_POS);
 }
 
-void Gpio::SetSpeed(uint8_t pin, GpioSpeed s)
+void Gpio::set_speed(uint8_t pin, GpioSpeed speed)
 {
-    volatile GPIO_TypeDef* gpio = getGpio(mGpioRegister);
-
     const uint8_t MASK = 0x11; // each map is 2 bits wide
     const uint8_t BITS_PER_PIN = 2;
-    gpio->OSPEEDR &= ~(MASK << (pin * BITS_PER_PIN));
-    gpio->OSPEEDR |= ~((static_cast<uint8_t>(s) & MASK) << (pin * BITS_PER_PIN));
+    m_gpio->OSPEEDR &= ~(MASK << (pin * BITS_PER_PIN));
+    m_gpio->OSPEEDR |= ~((static_cast<uint8_t>(speed) & MASK) << (pin * BITS_PER_PIN));
+}
+
+Gpio::~Gpio()
+{
+    RCC->AHB1ENR &= ~(1 << static_cast<uint8_t>(m_port));
 }

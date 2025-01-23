@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lib/hal/include/gpio.hpp"
+#include "gpio.hpp"
 #include "lib/hal/include/usart.hpp"
 
 extern uint32_t SystemCoreClock;
@@ -21,7 +21,7 @@ namespace usart_scratch
         HELLO
     };
 
-    void Transmit(Usart &u, const uint8_t *c, uint32_t len)
+    inline void Transmit(Usart &u, const uint8_t *c, uint32_t len)
     {
         for (uint8_t i = 0; i < len; i++)
         {
@@ -32,7 +32,7 @@ namespace usart_scratch
         }
     }
 
-    void Transmit(Usart &u, const uint8_t *c)
+    inline void Transmit(Usart &u, const uint8_t *c)
     {
         uint32_t i = 0;
         for (uint32_t i = 0; c[i]; i++)
@@ -44,7 +44,7 @@ namespace usart_scratch
         }
     }
 
-    void Hello(Usart &u)
+    inline void Hello(Usart &u)
     {
         uint8_t MSG[] = "HELLO\r\n";
         const uint8_t MSG_SIZE = sizeof(MSG);
@@ -52,20 +52,22 @@ namespace usart_scratch
     }
 
 
-    void SetLed(Gpio &gpio, bool on)
+    template<typename T>
+    requires IsGpioPort<T>
+    inline void SetLed(T &gpio, bool on)
     {
         // if we want to turn the LED on, write
         // a 0 to the output register since it's
         // an open drain output
-        gpio.WriteOutput(LED_PIN, on ? 0 : 1);
+        gpio.write_pin(LED_PIN, on ? 0 : 1);
     }
 
-    uint32_t MIN(uint32_t a, uint32_t b)
+    inline uint32_t MIN(uint32_t a, uint32_t b)
     {
         return a < b ? a : b;
     }
 
-    bool isEqualTo(const char *c0, uint32_t len0, const char *cmd)
+    inline bool isEqualTo(const char *c0, uint32_t len0, const char *cmd)
     {
         bool match = true;
         for (uint32_t i = 0; i < len0; i++)
@@ -92,7 +94,7 @@ namespace usart_scratch
 
         if (isEqualTo(c, len, "LED_OFF"))
         {
-            PC.WriteOutput(LED_PIN, OFF);
+            PC.write_pin(LED_PIN, OFF);
             SetLed(PC, OFF);
         }
         else if (isEqualTo(c, len, "LED_ON"))
@@ -114,7 +116,7 @@ namespace usart_scratch
         }
     }
 
-    void Receive(Usart &u)
+    inline void Receive(Usart &u)
     {
         constexpr uint32_t INPUT_LENGTH = 512;
         static char buffer[INPUT_LENGTH] = { 0 };
@@ -148,29 +150,31 @@ namespace usart_scratch
         }
     }
 
-    bool isSwitchPressed(Gpio &PA, uint8_t pinIndex)
+    template<typename T>
+    requires IsGpioPort<T>
+    inline bool isSwitchPressed(T &PA, uint8_t pinIndex)
     {
-        return (!PA.ReadInput(USER_SWITCH_PIN)) ? ON : OFF;
+        return (!PA.read_pin(USER_SWITCH_PIN)) ? ON : OFF;
     }
 
-    void run()
+    inline void run()
     {
         Gpio PA(GpioPort::A);
 
-        PA.SetMode(9,   GpioMode::Alternate); // USART1 TX
-        PA.SetMode(10,  GpioMode::Alternate); // USART1 RX
-        PA.SetSpeed(9,  GpioSpeed::High);
-        PA.SetSpeed(10, GpioSpeed::High);
-        PA.SetPullUpPullDown(9,  GpioPuPdMode::Pullup);
-        PA.SetPullUpPullDown(10, GpioPuPdMode::Pullup);
+        PA.set_mode(9,   GpioMode::Alternate); // USART1 TX
+        PA.set_mode(10,  GpioMode::Alternate); // USART1 RX
+        PA.set_speed(9,  GpioSpeed::High);
+        PA.set_speed(10, GpioSpeed::High);
+        PA.set_pupd(9,  GpioPuPdMode::Pullup);
+        PA.set_pupd(10, GpioPuPdMode::Pullup);
 
-        PA.SetAfMode(9, 0x7);
-        PA.SetAfMode(10, 0x7);
+        PA.set_af(9, 0x7);
+        PA.set_af(10, 0x7);
 
-        PA.SetMode(USER_SWITCH_PIN, GpioMode::Input);
+        PA.set_mode(USER_SWITCH_PIN, GpioMode::Input);
 
-        // Gpio PC(GpioPort::C);
-        PC.SetMode(LED_PIN, GpioMode::Output);
+        Gpio PC(GpioPort::C);
+        PC.set_mode(LED_PIN, GpioMode::Output);
 
         Usart usart(UsartNum::USART_1);
         usart.Configure(115200);

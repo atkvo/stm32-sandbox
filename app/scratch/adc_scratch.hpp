@@ -1,7 +1,7 @@
 #pragma once
 
 #include "lib/hal/include/adc.hpp"
-#include "lib/hal/include/gpio.hpp"
+#include "gpio.hpp"
 
 namespace adc_scratch
 {
@@ -11,24 +11,28 @@ namespace adc_scratch
     const bool OFF = false;
     const bool ON  = true;
 
-    void SetLed(Gpio &gpio, bool on)
+    template <typename T>
+    requires IsGpioPort<T>
+    void SetLed(T&gpio, bool on)
     {
         // if we want to turn the LED on, write
         // a 0 to the output register since it's
         // an open drain output
-        gpio.WriteOutput(LED_PIN, on ? 0 : 1);
+        gpio.write_pin(LED_PIN, on ? 0 : 1);
     }
 
-    bool isSwitchPressed(Gpio &PA, uint8_t pinIndex)
+    template <typename T>
+    requires IsGpioPort<T>
+    bool isSwitchPressed(T &PA, uint8_t pinIndex)
     {
-        return (!PA.ReadInput(USER_SWITCH_PIN)) ? ON : OFF;
+        return (!PA.read_pin(USER_SWITCH_PIN)) ? ON : OFF;
     }
 
     uint32_t pollAdc(Adc &a)
     {
-        a.BeginConversion();
-        while (!a.IsConversionDone()) { }
-        return a.Read();
+        a.start_conversion();
+        while (!a.is_conversion_done()) { }
+        return a.read();
     }
 
     void run()
@@ -36,12 +40,12 @@ namespace adc_scratch
         Gpio PC(GpioPort::C);
         Gpio PA(GpioPort::A);
         Adc  adc;
-        adc.ConfigurePin(PA, 1);
+        adc.configure_pin(PA, 1);
 
-        PC.SetMode(LED_PIN, GpioMode::Output);
-        PC.SetOutputType(LED_PIN, GpioOutputType::OpenDrain);
+        PC.set_mode(LED_PIN, GpioMode::Output);
+        PC.set_output_mode(LED_PIN, GpioOutputMode::OpenDrain);
 
-        PA.SetMode(USER_SWITCH_PIN, GpioMode::Input);
+        PA.set_mode(USER_SWITCH_PIN, GpioMode::Input);
 
         uint32_t rawData = 0;
         bool switchPressed = isSwitchPressed(PA, USER_SWITCH_PIN);

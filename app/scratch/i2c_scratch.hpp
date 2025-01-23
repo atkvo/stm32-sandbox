@@ -1,10 +1,9 @@
 #pragma once
 
-#include "lib/hal/include/gpio.hpp"
+#include "gpio.hpp"
 #include "lib/hal/include/usart.hpp"
 #include "lib/hal/include/i2c.hpp"
 
-extern uint8_t __counter;
 extern uint32_t SystemCoreClock;
 
 namespace i2c_scratch
@@ -23,24 +22,15 @@ namespace i2c_scratch
         OLED_CMD_SCREEN_OFF = 0xAE,
     };
 
+    enum SSD1306_Commands
+    {
+        PIXELS_OFF = 0xA4,
+
+        DISPLAY_OFF = 0xAE,
+        DISPLAY_ON = 0xAF,
+    };
+
     void ssd1306Init();
-
-    void run() {
-        Gpio PB(GpioPort::B);
-        PB.SetOutputType(5, GpioOutputType::PushPull);
-        PB.SetMode(5, GpioMode::Output);
-
-        I2C i2c1(I2CId::I2C_1, PB, 6, 7);
-        i2c1.Enable();
-        g_i2c = &i2c1;
-
-        ssd1306Init();
-
-        while (1)
-        {
-
-        };
-    }
 
     void i2c_OLED_send_cmd(uint8_t cmd)
     {
@@ -54,9 +44,38 @@ namespace i2c_scratch
         const uint8_t CMD_BYTES[] = { 0x0, cmd };
 
         // Both methods work
-        g_i2c->WriteStream(OLED_ADDRESS, CMD_BYTES, 2);
+        g_i2c->write_stream(OLED_ADDRESS, CMD_BYTES, 2);
         // g_i2c->WriteReg(OLED_ADDRESS, 0x0, cmd);
     }
+
+    void run() {
+        Gpio PB(GpioPort::B);
+        PB.set_output_mode(5, GpioOutputMode::PushPull);
+        PB.set_mode(5, GpioMode::Output);
+
+        I2C i2c1(I2CId::I2C_1, PB, 6, 7);
+        i2c1.enable();
+        g_i2c = &i2c1;
+
+        ssd1306Init();
+
+        Gpio PC(GpioPort::C);
+        enum { LED_PIN = 13 };
+        PC.set_mode(LED_PIN, GpioMode::Output);
+        PC.set_output_mode(LED_PIN, GpioOutputMode::OpenDrain);
+        while (1)
+        {
+            i2c_OLED_send_cmd(0xA6); // set normal mode
+            PC.write_pin(LED_PIN, 1);
+            for (volatile int i = 0; i < 500000; i++); // arbitrary delay
+
+            PC.write_pin(LED_PIN, 0);
+            i2c_OLED_send_cmd(0xA7); // set inverse mode
+            i2c_OLED_send_cmd(DISPLAY_ON);
+            for (volatile int i = 0; i < 500000; i++); // arbitrary delay
+        };
+    }
+
 
     void ssd1306Init(void)
     {

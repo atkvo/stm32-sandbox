@@ -6,7 +6,7 @@
  *
  * @return Adc::Resolution
  */
-Adc::Resolution GetAdcResFromControlRegister();
+Adc::Resolution get_current_resolution();
 
 /*
 void ADC_IRQHandler(void)
@@ -21,7 +21,7 @@ Adc::Adc()
     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN; // enable ADC1 clock
     ADC1->CR2    |= ADC_CR2_ADON;       // enable ADC peripheral
 
-    m_ConfiguredResolution = GetAdcResFromControlRegister();
+    m_configured_resolution = get_current_resolution();
 }
 
 Adc::~Adc()
@@ -30,13 +30,7 @@ Adc::~Adc()
     ADC1->CR2    &= ~ADC_CR2_ADON;       // disable ADC peripheral
 }
 
-void Adc::ConfigurePin(Gpio &gpioPort, uint8_t pinIndex)
-{
-    gpioPort.SetMode(pinIndex, GpioMode::Analog);
-    ADC1->SQR3 |= ADC_SQR3_SQ1_0;
-}
-
-bool Adc::SetResolution(Resolution r)
+bool Adc::set_resolution(Resolution r)
 {
     uint8_t mode;
 
@@ -64,22 +58,22 @@ bool Adc::SetResolution(Resolution r)
     return true;
 }
 
-uint32_t Adc::Read()
+uint32_t Adc::read()
 {
-    return ADC1->DR & m_ConfiguredResolution;
+    return ADC1->DR & m_configured_resolution;
 }
 
-void Adc::BeginConversion()
+void Adc::start_conversion()
 {
     ADC1->CR2 |= ADC_CR2_SWSTART;
 }
 
-bool Adc::IsConversionDone()
+bool Adc::is_conversion_done()
 {
     return ((ADC1->SR & ADC_SR_EOC) != 0);
 }
 
-Adc::Resolution GetAdcResFromControlRegister()
+Adc::Resolution get_current_resolution()
 {
     uint8_t const mode = (ADC1->CR1 & ADC_CR1_RES) >> ADC_CR1_RES_Pos;
 

@@ -44,14 +44,21 @@ public:
      * @param gpioPort
      * @param pinIndex
      */
-    void ConfigurePin(Gpio &gpioPort, uint8_t pinIndex);
+    template <typename T>
+    requires IsGpioPort<T>
+    void configure_pin(T &gpio_port, uint8_t pinIndex)
+    {
+        gpio_port.set_mode(pinIndex, GpioMode::Analog);
+        ADC1->SQR3 |= ADC_SQR3_SQ1_0;
+    }
+
 
     /**
      * @brief Reads the ADC data register
      *
      * @return uint32_t
      */
-    uint32_t Read();
+    uint32_t read();
 
     /**
      * @brief Check if an ADC conversion is done
@@ -59,14 +66,14 @@ public:
      * @return true
      * @return false
      */
-    bool IsConversionDone();
+    bool is_conversion_done();
 
     /**
      * @brief Starts the conversion
      *
      */
 
-    void BeginConversion();
+    void start_conversion();
 
     /**
      * @brief Set the ADC resolution
@@ -75,10 +82,10 @@ public:
      * @return true if the resolution is supported
      * @return false  if the resolution is not supported
      */
-    bool SetResolution(Resolution r);
+    bool set_resolution(Resolution r);
 
     static const uint32_t MAX_RESOLUTION;
 
 private:
-    Resolution m_ConfiguredResolution;
+    Resolution m_configured_resolution;
 };

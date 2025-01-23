@@ -68,8 +68,8 @@ add_compile_options(
   -mfloat-abi=hard
 
   # --specs=nano.specs
-  # --specs=nosys.specs
-  --specs=rdimon.specs
+  --specs=nosys.specs
+  # --specs=rdimon.specs
 
   -fdata-sections
   -ffunction-sections
@@ -88,8 +88,8 @@ add_link_options(
   -mfpu=fpv4-sp-d16
   -mfloat-abi=hard
   # -specs=nano.specs
-  # -specs=nosys.specs
-  -specs=rdimon.specs
+  -specs=nosys.specs
+  # -specs=rdimon.specs
   -lstdc++
   -lc
   -lm

@@ -17,6 +17,7 @@ set(SOURCES
 
 # set(CXXFLAGS  " -Wall -std=c++17")
 # set(CMAKE_CXX_FLAGS "${CXXFLAGS}")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(${EXECUTABLE} ${SOURCES})
 
