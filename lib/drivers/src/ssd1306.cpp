@@ -5,7 +5,9 @@ namespace ssd1306
     enum CommandCodes
     {
         CMD_STREAM = 0x0,
+        DATA_STREAM = 0x40,
 
+        CMD_SET_ADDRESS_MODE = 0x20,
         CMD_SET_CONTRAST = 0x81,
 
         CMD_DISPLAY_ON_RESUME    = 0xA4,
@@ -83,7 +85,6 @@ namespace ssd1306
 
     void OledDisplay::set_pixel(uint32_t x, uint32_t y, bool state)
     {
-        m_ram[x][y] = state;
     }
 
     void OledDisplay::refresh()
@@ -111,5 +112,47 @@ namespace ssd1306
 
         m_i2c.tx_data(CMD_SCROLL_ACTIVATE);
         m_i2c.tx_end();
+    }
+
+    void OledDisplay::set_addressing_mode(AddressMode mode)
+    {
+        send_cmd(CMD_SET_ADDRESS_MODE);
+        send_cmd(static_cast<uint8_t>(mode));
+    }
+
+    void OledDisplay::set_col(uint8_t start, uint8_t end)
+    {
+        send_cmd(CMD_SET_COL_ADDRESS);
+        send_cmd(start);
+        send_cmd(end);
+    }
+
+
+    void OledDisplay::set_page(uint8_t start, uint8_t end)
+    {
+        // Maximum of 8 pages total (0-7)
+        enum { PAGE_ADDRESS_MASK = 0x7 };
+
+        send_cmd(CMD_SET_PAGE_ADDRESS);
+        send_cmd(start & PAGE_ADDRESS_MASK);
+        send_cmd(end & PAGE_ADDRESS_MASK);
+    }
+
+    void OledDisplay::draw_buffer(const uint8_t *buffer, const uint32_t len)
+    {
+        m_i2c.tx_start(m_addr);
+        m_i2c.tx_data(DATA_STREAM);
+
+        for (uint32_t i = 0; i < len; i++)
+        {
+            m_i2c.tx_data(buffer[i]);
+        }
+
+        m_i2c.tx_end();
+    }
+
+    void OledDisplay::update()
+    {
+        draw_buffer(m_ram, sizeof(m_ram));
     }
 }
